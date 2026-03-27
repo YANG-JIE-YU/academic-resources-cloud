@@ -1,0 +1,59 @@
+# ===== IDE / Editor =====
+.idea/
+.vscode/
+*.iml
+*.suo
+*.user
+*.swp
+*.swo
+
+# ===== OS junk =====
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===== Logs / runtime =====
+*.log
+*.out
+*.err
+*.pid
+logs/
+
+# ===== Environment files =====
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# ===== Java / Maven (multi-module) =====
+**/target/
+*.class
+hs_err_pid*
+replay_pid*
+
+# local Maven cache in repo root
+.m2/
+
+# ===== Node / Vite =====
+**/node_modules/
+**/dist/
+**/.vite/
+**/coverage/
+**/*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+.npm/
+
+# ===== Project local tooling =====
+.ai/
+
+# ===== Docs temporary files =====
+docs/**/*.zip
+docs/**/~$*.doc
+docs/**/~$*.docx
+docs/**

@@ -1,0 +1,44 @@
+server:
+  port: 18083
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${MYSQL_HOST:127.0.0.1}:${MYSQL_PORT:3306}/academic_cloud_ai_db?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false
+    username: ${MYSQL_USERNAME:root}
+    password: ${MYSQL_PASSWORD:123456}
+  data:
+    redis:
+      host: ${REDIS_HOST:127.0.0.1}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: 1
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      id-type: auto
+
+feign:
+  client:
+    config:
+      default:
+        connect-timeout: 3000
+        read-timeout: 5000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+ai:
+  enabled: ${AI_ENABLED:true}
+  base-url: ${AI_BASE_URL:https://api.minimaxi.com/anthropic}
+  group-id: ${AI_GROUP_ID:2037175370381271202}
+  api-key: ${AI_API_KEY:sk-api-KvGcUb3AFd3kxNK9OF5LVHOm5Bs7TO_mx7j18JO-nflEm9UCksMaY0xksOSTYXlXpRZxNGlddD67g6CrfbPyferg1UAMiNNLhr2PCE0WY3vkQ8tTv7MVt3w}
+  model: ${AI_MODEL:MiniMax-M2.7}
+  chat-path: ${AI_CHAT_PATH:/v1/messages}
+  max-tokens: ${AI_MAX_TOKENS:1024}

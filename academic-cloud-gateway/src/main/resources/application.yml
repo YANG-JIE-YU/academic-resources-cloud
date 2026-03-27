@@ -1,0 +1,31 @@
+server:
+  port: 18080
+
+spring:
+  main:
+    web-application-type: reactive
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
+
+academic:
+  gateway:
+    jwt-secret: ${JWT_SECRET:replace-with-a-strong-secret-at-least-32-bytes}
+    ignore-urls:
+      - /api/user/auth/login
+      - /api/user/auth/register
+      - /api/user/auth/logout
+      - /api/paper/papers/page
+      - /api/paper/papers/*
+      - /api/paper/categories
+      - /api/paper/notices
+      - /api/paper/notices/*
+      - /api/paper/activities
+      - /api/paper/activities/*
+      - /api/user/comments
+      - /api/user/forum/posts
+      - /api/user/forum/posts/*/replies
+      - /actuator/**

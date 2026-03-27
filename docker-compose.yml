@@ -1,0 +1,192 @@
+services:
+  mysql:
+    image: docker.m.daocloud.io/library/mysql:8.4
+    container_name: academic-cloud-mysql
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Shanghai
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123456}
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d
+      - ./docs/sql:/docker-entrypoint-initdb.d/sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 20s
+
+  redis:
+    image: docker.m.daocloud.io/library/redis:7.2-alpine
+    container_name: academic-cloud-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  nacos:
+    image: docker.m.daocloud.io/nacos/nacos-server:v2.3.2
+    container_name: academic-cloud-nacos
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Shanghai
+      MODE: standalone
+      NACOS_AUTH_ENABLE: "false"
+      JVM_XMS: 256m
+      JVM_XMX: 256m
+      JVM_XMN: 128m
+      PREFER_HOST_MODE: hostname
+    ports:
+      - "8848:8848"
+    volumes:
+      - nacos_logs:/home/nacos/logs
+
+  user-service:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.backend
+      args:
+        SERVICE_MODULE: academic-cloud-user-service
+    image: academic-cloud/user-service:local
+    container_name: academic-cloud-user-service
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Shanghai
+      JAVA_OPTS: -Xms256m -Xmx512m
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_USERNAME: root
+      MYSQL_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123456}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ""
+      NACOS_SERVER_ADDR: nacos:8848
+      JWT_SECRET: ${JWT_SECRET:-replace-with-a-strong-secret-at-least-32-bytes}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      nacos:
+        condition: service_started
+    ports:
+      - "18081:18081"
+
+  paper-service:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.backend
+      args:
+        SERVICE_MODULE: academic-cloud-paper-service
+    image: academic-cloud/paper-service:local
+    container_name: academic-cloud-paper-service
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Shanghai
+      JAVA_OPTS: -Xms256m -Xmx512m
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_USERNAME: root
+      MYSQL_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123456}
+      NACOS_SERVER_ADDR: nacos:8848
+    depends_on:
+      mysql:
+        condition: service_healthy
+      nacos:
+        condition: service_started
+    ports:
+      - "18082:18082"
+
+  ai-service:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.backend
+      args:
+        SERVICE_MODULE: academic-cloud-ai-service
+    image: academic-cloud/ai-service:local
+    container_name: academic-cloud-ai-service
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Shanghai
+      JAVA_OPTS: -Xms256m -Xmx512m
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_USERNAME: root
+      MYSQL_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123456}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ""
+      NACOS_SERVER_ADDR: nacos:8848
+      AI_ENABLED: ${AI_ENABLED:-true}
+      AI_BASE_URL: ${AI_BASE_URL:-https://api.minimaxi.com/anthropic}
+      AI_GROUP_ID: ${AI_GROUP_ID:-}
+      AI_API_KEY: ${AI_API_KEY:-}
+      AI_MODEL: ${AI_MODEL:-MiniMax-M2.7}
+      AI_CHAT_PATH: ${AI_CHAT_PATH:-/v1/messages}
+      AI_MAX_TOKENS: ${AI_MAX_TOKENS:-1024}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      nacos:
+        condition: service_started
+    ports:
+      - "18083:18083"
+
+  gateway:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.backend
+      args:
+        SERVICE_MODULE: academic-cloud-gateway
+    image: academic-cloud/gateway:local
+    container_name: academic-cloud-gateway
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Shanghai
+      JAVA_OPTS: -Xms256m -Xmx512m
+      NACOS_SERVER_ADDR: nacos:8848
+      JWT_SECRET: ${JWT_SECRET:-replace-with-a-strong-secret-at-least-32-bytes}
+    depends_on:
+      user-service:
+        condition: service_started
+      paper-service:
+        condition: service_started
+      ai-service:
+        condition: service_started
+      nacos:
+        condition: service_started
+    ports:
+      - "18080:18080"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+    image: academic-cloud/frontend:local
+    container_name: academic-cloud-frontend
+    restart: unless-stopped
+    depends_on:
+      gateway:
+        condition: service_started
+    ports:
+      - "18000:80"
+
+volumes:
+  mysql_data:
+  redis_data:
+  nacos_logs:

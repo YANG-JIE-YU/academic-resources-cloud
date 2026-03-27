@@ -1,0 +1,17 @@
+ARG MIRROR_REGISTRY=docker.m.daocloud.io
+
+FROM ${MIRROR_REGISTRY}/library/node:20-alpine AS builder
+
+WORKDIR /app
+RUN corepack enable
+
+COPY academic-cloud-vue/package.json academic-cloud-vue/pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
+
+COPY academic-cloud-vue/ ./
+RUN pnpm build
+
+FROM ${MIRROR_REGISTRY}/library/nginx:1.27-alpine
+
+COPY docker/nginx/default.conf /etc/nginx/conf.d/default.conf
+COPY --from=builder /app/dist /usr/share/nginx/html

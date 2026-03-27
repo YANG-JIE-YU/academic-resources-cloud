@@ -1,0 +1,37 @@
+:root {
+  --portal-bg: #f5f7fb;
+  --card-bg: #ffffff;
+  --text-main: #1f2a37;
+  --text-sub: #6b7280;
+  --primary: #0f6d5b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+  color: var(--text-main);
+  background: var(--portal-bg);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.page-container {
+  width: min(1200px, 100%);
+  margin: 0 auto;
+  padding: 20px 16px;
+}

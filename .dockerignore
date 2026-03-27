@@ -1,0 +1,11 @@
+.git
+.idea
+.ai
+**/target
+**/node_modules
+docs/springbootg75441il
+docs/_thesis_work
+docs/*.doc
+docs/*.docx
+docs/*.xlsx
+docs/*.zip
