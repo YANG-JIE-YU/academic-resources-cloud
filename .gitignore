@@ -56,4 +56,3 @@ pnpm-debug.log*
 docs/**/*.zip
 docs/**/~$*.doc
 docs/**/~$*.docx
-docs/**
